@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG ChatBot</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; background-color: #f4f4f9; }
+        .chat-container { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1 { color: #333; text-align: center; }
+        .input-group { display: flex; gap: 10px; margin-top: 20px; }
+        input[type="text"] { flex-grow: 1; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px; }
+        button { padding: 12px 24px; background-color: #007bff; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; }
+        button:hover { background-color: #0056b3; }
+        button:disabled { background-color: #ccc; }
+        #answer-box { margin-top: 20px; padding: 15px; background: #eef; border-radius: 8px; border-left: 5px solid #007bff; display: none; }
+        .context-box { margin-top: 10px; font-size: 0.85em; color: #666; background: #fafafa; padding: 10px; border: 1px dashed #ccc; display: none; }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <h1>🤖 RAG Knowledge Bot</h1>
+        <p>Ask a question about your documents:</p>
+        
+        <div class="input-group">
+            <input type="text" id="userQuery" placeholder="e.g., What is the primary energy source?" onkeydown="if(event.key==='Enter') sendQuery()">
+            <button id="askBtn" onclick="sendQuery()">Ask</button>
+        </div>
+
+        <div id="answer-box">
+            <strong>Answer:</strong>
+            <p id="answerText"></p>
+        </div>
+
+        <div id="context-box" class="context-box">
+            <strong>Source Context:</strong>
+            <pre id="contextText"></pre>
+        </div>
+    </div>
+
+    <script>
+        async function sendQuery() {
+            const queryInput = document.getElementById('userQuery');
+            const askBtn = document.getElementById('askBtn');
+            const answerBox = document.getElementById('answer-box');
+            const contextBox = document.getElementById('context-box');
+            
+            const query = queryInput.value.trim();
+            if (!query) return;
+
+            // UI Loading State
+            askBtn.disabled = true;
+            askBtn.innerText = "Thinking...";
+            answerBox.style.display = 'none';
+            contextBox.style.display = 'none';
+
+            try {
+                const response = await fetch('/query', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: query })
+                });
+
+                const data = await response.json();
+
+                // Show Results
+                document.getElementById('answerText').innerText = data.answer;
+                document.getElementById('contextText').innerText = data.context_used;
+                answerBox.style.display = 'block';
+                contextBox.style.display = 'block';
+
+            } catch (error) {
+                alert("Error connecting to server!");
+                console.error(error);
+            } finally {
+                askBtn.disabled = false;
+                askBtn.innerText = "Ask";
+            }
+        }
+    </script>
+</body>
+</html>

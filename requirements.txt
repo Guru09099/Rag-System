@@ -1,0 +1,8 @@
+faiss-cpu
+sentence-transformers
+transformers
+torch
+numpy
+scipy
+python-dotenv
+pypdf
