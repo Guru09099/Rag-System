@@ -1,8 +1,7 @@
+sanic
 faiss-cpu
 sentence-transformers
-transformers
-torch
-numpy
-scipy
+google-generativeai
 python-dotenv
 pypdf
+numpy

@@ -1,8 +1,10 @@
 # src/serve.py
-from sanic import Sanic, response
-from src.retrieve import search
-from src.generate import generate_answer
 import os
+
+from sanic import Sanic, response
+from src.build_index import create_vector_db
+from src.generate import generate_answer
+from src.retrieve import search
 
 # Initialize Sanic App
 app = Sanic("RAG_App")
@@ -10,6 +12,34 @@ app = Sanic("RAG_App")
 # 1. Serve the HTML file at the root URL "/"
 # We tell Sanic where the file is located
 app.static('/', './static/index.html', name='home')
+
+
+@app.post('/upload')
+async def upload_endpoint(request):
+    uploaded_file = request.files.get('file')
+
+    if not uploaded_file:
+        return response.json({"error": "No file uploaded"}, status=400)
+
+    filename = os.path.basename(uploaded_file.name)
+    if not filename.lower().endswith(('.pdf', '.txt')):
+        return response.json({"error": "Only .pdf and .txt files are allowed"}, status=400)
+
+    os.makedirs("data", exist_ok=True)
+    file_path = os.path.join("data", filename)
+
+    with open(file_path, "wb") as f:
+        f.write(uploaded_file.body)
+
+    indexed = create_vector_db()
+    if not indexed:
+        return response.json(
+            {"error": f"Uploaded {filename}, but indexing failed"},
+            status=500,
+        )
+
+    return response.json({"message": f"Uploaded and indexed {filename}"})
+
 
 @app.post('/query')
 async def query_endpoint(request):

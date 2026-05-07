@@ -5,23 +5,103 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RAG ChatBot</title>
     <style>
-        body { font-family: sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; background-color: #f4f4f9; }
-        .chat-container { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        h1 { color: #333; text-align: center; }
-        .input-group { display: flex; gap: 10px; margin-top: 20px; }
-        input[type="text"] { flex-grow: 1; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px; }
-        button { padding: 12px 24px; background-color: #007bff; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; }
-        button:hover { background-color: #0056b3; }
-        button:disabled { background-color: #ccc; }
-        #answer-box { margin-top: 20px; padding: 15px; background: #eef; border-radius: 8px; border-left: 5px solid #007bff; display: none; }
-        .context-box { margin-top: 10px; font-size: 0.85em; color: #666; background: #fafafa; padding: 10px; border: 1px dashed #ccc; display: none; }
+        * { box-sizing: border-box; }
+        body {
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 16px;
+            background: #050805;
+            color: #dfffe7;
+        }
+        .chat-container {
+            background: #0b120d;
+            padding: 32px;
+            border: 1px solid #1dff68;
+            border-radius: 12px;
+            box-shadow: 0 0 24px rgba(29, 255, 104, 0.22);
+        }
+        h1 {
+            color: #39ff88;
+            text-align: center;
+            margin-top: 0;
+            text-shadow: 0 0 14px rgba(57, 255, 136, 0.55);
+        }
+        p { color: #a8cbb2; }
+        .input-group,
+        .upload-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        input[type="text"],
+        input[type="file"] {
+            flex-grow: 1;
+            min-width: 220px;
+            padding: 12px;
+            border: 1px solid #256b3c;
+            border-radius: 8px;
+            background: #050805;
+            color: #dfffe7;
+            font-size: 16px;
+        }
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #39ff88;
+            box-shadow: 0 0 0 3px rgba(57, 255, 136, 0.18);
+        }
+        button {
+            padding: 12px 24px;
+            background: #39ff88;
+            color: #031006;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            box-shadow: 0 0 16px rgba(57, 255, 136, 0.35);
+        }
+        button:hover { background: #8dffb8; }
+        button:disabled {
+            background: #314838;
+            color: #9db8a5;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+        #answer-box {
+            margin-top: 24px;
+            padding: 18px;
+            background: #071b0e;
+            border-radius: 8px;
+            border-left: 5px solid #39ff88;
+            display: none;
+        }
+        .context-box {
+            margin-top: 14px;
+            font-size: 0.85em;
+            color: #b8d7c1;
+            background: #060a07;
+            padding: 14px;
+            border: 1px dashed #256b3c;
+            border-radius: 8px;
+            display: none;
+        }
+        strong { color: #39ff88; }
+        #answerText, #contextText { white-space: pre-wrap; overflow-wrap: anywhere; }
     </style>
 </head>
 <body>
     <div class="chat-container">
         <h1>🤖 RAG Knowledge Bot</h1>
         <p>Ask a question about your documents:</p>
-        
+        <div class="upload-group">
+            <input type="file" id="documentFile" accept=".txt,.pdf">
+            <button id="uploadBtn" onclick="uploadDocument()">Upload</button>
+        </div>
+
         <div class="input-group">
             <input type="text" id="userQuery" placeholder="e.g., What is the primary energy source?" onkeydown="if(event.key==='Enter') sendQuery()">
             <button id="askBtn" onclick="sendQuery()">Ask</button>
@@ -39,6 +119,35 @@
     </div>
 
     <script>
+        async function uploadDocument() {
+            const fileInput = document.getElementById('documentFile');
+            const uploadBtn = document.getElementById('uploadBtn');
+
+            if (!fileInput.files.length) return;
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            uploadBtn.disabled = true;
+            uploadBtn.innerText = "Indexing...";
+
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                alert(data.message || data.error);
+            } catch (error) {
+                alert("Error uploading file!");
+                console.error(error);
+            } finally {
+                uploadBtn.disabled = false;
+                uploadBtn.innerText = "Upload";
+            }
+        }
+
         async function sendQuery() {
             const queryInput = document.getElementById('userQuery');
             const askBtn = document.getElementById('askBtn');
