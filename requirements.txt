@@ -1,7 +1,6 @@
 sanic
 faiss-cpu
 sentence-transformers
-openai
 python-dotenv
 pypdf
 numpy
