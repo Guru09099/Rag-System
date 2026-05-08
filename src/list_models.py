@@ -4,7 +4,7 @@ from urllib import request
 
 print("--- CHECKING AVAILABLE MODELS ---")
 try:
-    with request.urlopen("http://localhost:11434/api/tags", timeout=10) as response:
+    with request.urlopen("http://127.0.0.1:11434/api/tags", timeout=10) as response:
         data = json.loads(response.read().decode("utf-8"))
         for model in data.get("models", []):
             print(model["name"])

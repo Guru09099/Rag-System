@@ -58,7 +58,7 @@ async def query_endpoint(request):
     # 1. Retrieve
     context = search(user_query)
     
-    # 2. Generate (Gemini)
+    # 2. Generate (Ollama)
     answer = generate_answer(user_query, context)
     
     return response.json({
