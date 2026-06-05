@@ -1,7 +1,11 @@
-sanic
+fastapi
+uvicorn[standard]
+httpx
+python-multipart
 faiss-cpu
 sentence-transformers
 python-dotenv
 pypdf
 numpy
 matplotlib
+flake8

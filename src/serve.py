@@ -45,22 +45,22 @@ async def upload_endpoint(request):
 async def query_endpoint(request):
     # Sanic access JSON data via request.json
     user_query = request.json.get('query')
-    
+
     if not user_query:
         return response.json({"error": "No query provided"}, status=400)
-    
+
     print(f"Received query: {user_query}")
 
     # Note: search() and generate_answer() are synchronous (blocking).
     # In a production Sanic app, you might run these in a separate thread,
     # but for this project, calling them directly is totally fine.
-    
+
     # 1. Retrieve
     context = search(user_query)
-    
+
     # 2. Generate (Ollama)
     answer = generate_answer(user_query, context)
-    
+
     return response.json({
         "query": user_query,
         "answer": answer,
