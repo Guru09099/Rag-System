@@ -1,12 +1,13 @@
 """FastAPI Server for RAG Document Assistant.
 
-A lightweight, clean REST API serving the unified RAG pipeline and web UI.
+A lightweight, clean REST API serving the unified RAG pipeline and modern React UI.
 """
 
 from pathlib import Path
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from src.pipeline import RAGPipeline
@@ -24,6 +25,11 @@ app.add_middleware(
 pipeline = RAGPipeline()
 STATIC_HTML = Path("static/index.html")
 DATA_DIR = Path("data")
+REPORTS_DIR = Path("reports")
+REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+
+# Mount reports directory for viewing evaluation charts
+app.mount("/reports", StaticFiles(directory=str(REPORTS_DIR)), name="reports")
 
 
 class QueryRequest(BaseModel):
@@ -53,6 +59,19 @@ def health():
         "index_ready": pipeline.is_ready(),
         "chunks_count": len(pipeline.chunks),
     }
+
+
+@app.get("/documents")
+def list_documents():
+    """Lists all documents available in data/."""
+    if not DATA_DIR.exists():
+        return {"documents": []}
+    files = [
+        {"name": f.name, "size_kb": round(f.stat().st_size / 1024, 2)}
+        for f in sorted(DATA_DIR.iterdir())
+        if f.is_file() and not f.name.startswith(".")
+    ]
+    return {"documents": files}
 
 
 @app.post("/upload")

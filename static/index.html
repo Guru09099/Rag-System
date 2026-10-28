@@ -3,202 +3,366 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RAG Document Assistant</title>
+  <title>RAG Document Intelligence</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+  
+  <!-- React 18 & Babel via CDN (Zero build steps, 100% pure React experience) -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
   <style>
     :root {
-      --bg: #0d1117;
-      --card-bg: #161b22;
-      --border: #30363d;
-      --accent: #238636;
-      --accent-hover: #2ea043;
-      --text: #c9d1d9;
-      --text-bright: #f0f6fc;
-      --text-muted: #8b949e;
-      --tag-bg: #21262d;
+      --bg-dark: #090d16;
+      --bg-card: #111827;
+      --bg-input: #0b1120;
+      --border: #1f2937;
+      --border-accent: #374151;
+      --primary: #22c55e;
+      --primary-hover: #16a34a;
+      --blue: #3b82f6;
+      --purple: #8b5cf6;
+      --text: #e5e7eb;
+      --text-muted: #9ca3af;
+      --text-bright: #ffffff;
+      --badge-bg: #1f2937;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background: var(--bg); color: var(--text); padding: 2rem 1rem; display: flex; justify-content: center; }
-    .container { width: 100%; max-width: 900px; display: flex; flex-direction: column; gap: 1.5rem; }
-    header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
-    h1 { color: var(--text-bright); font-size: 1.6rem; display: flex; align-items: center; gap: 0.5rem; }
-    .badge { padding: 0.35rem 0.75rem; border-radius: 999px; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 0.4rem; background: var(--tag-bg); border: 1px solid var(--border); }
-    .dot { width: 8px; height: 8px; border-radius: 50%; background: #e3b341; }
-    .dot.ready { background: #3fb950; }
-    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; }
-    h2 { font-size: 1.1rem; color: var(--text-bright); margin-bottom: 0.8rem; }
-    .row { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; }
-    input[type="file"], input[type="text"], textarea, select {
-      background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text-bright);
-      padding: 0.6rem 0.8rem; font-size: 0.95rem; outline: none;
-    }
-    input[type="file"] { flex: 1; }
-    textarea { width: 100%; resize: vertical; min-height: 80px; }
-    button {
-      background: var(--accent); color: white; border: none; border-radius: 6px; padding: 0.6rem 1.2rem;
-      font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: background 0.15s;
-    }
-    button:hover { background: var(--accent-hover); }
-    button:disabled { opacity: 0.5; cursor: not-allowed; }
-    .btn-secondary { background: var(--tag-bg); color: var(--text-bright); border: 1px solid var(--border); }
-    .btn-secondary:hover { background: #30363d; }
-    .answer-box { background: var(--bg); border-left: 4px solid var(--accent); padding: 1rem; border-radius: 4px; margin-top: 0.8rem; white-space: pre-wrap; color: var(--text-bright); }
-    .sources { margin-top: 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
-    .source-item { background: var(--bg); border: 1px solid var(--border); padding: 0.75rem; border-radius: 6px; font-size: 0.88rem; }
-    .source-header { display: flex; justify-content: space-between; font-weight: 600; color: #58a6ff; margin-bottom: 0.3rem; }
-    .message { font-size: 0.85rem; color: #58a6ff; margin-top: 0.5rem; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { background: var(--bg-dark); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 2rem 1rem; }
+    #root { width: 100%; max-width: 980px; }
+    
+    /* Layout */
+    .app-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
+    .brand h1 { font-size: 1.6rem; color: var(--text-bright); display: flex; align-items: center; gap: 0.5rem; }
+    .brand p { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem; }
+    
+    .status-pill { display: flex; align-items: center; gap: 0.5rem; background: var(--badge-bg); border: 1px solid var(--border); padding: 0.4rem 0.85rem; border-radius: 9999px; font-size: 0.85rem; font-weight: 500; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #eab308; }
+    .dot.ready { background: #22c55e; box-shadow: 0 0 10px rgba(34, 197, 94, 0.4); }
+    
+    /* Tabs */
+    .tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+    .tab-btn { background: none; border: none; color: var(--text-muted); font-size: 0.95rem; font-weight: 600; padding: 0.6rem 1rem; border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 0.4rem; }
+    .tab-btn:hover { color: var(--text-bright); background: rgba(255, 255, 255, 0.04); }
+    .tab-btn.active { color: var(--primary); background: rgba(34, 197, 94, 0.1); }
+    
+    /* Cards */
+    .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2); }
+    .card-title { font-size: 1.15rem; font-weight: 600; color: var(--text-bright); margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; }
+    
+    /* Inputs & Buttons */
+    textarea { width: 100%; background: var(--bg-input); border: 1px solid var(--border); border-radius: 8px; color: var(--text-bright); padding: 0.85rem; font-size: 0.95rem; outline: none; resize: vertical; min-height: 90px; }
+    textarea:focus { border-color: var(--primary); }
+    
+    .action-row { display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; gap: 1rem; flex-wrap: wrap; }
+    .btn { background: var(--primary); color: #000; border: none; border-radius: 6px; padding: 0.65rem 1.4rem; font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: background 0.15s; display: inline-flex; align-items: center; gap: 0.5rem; }
+    .btn:hover { background: var(--primary-hover); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-secondary { background: var(--badge-bg); color: var(--text-bright); border: 1px solid var(--border); }
+    .btn-secondary:hover { background: var(--border-accent); }
+    
+    select { background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border); padding: 0.5rem 0.8rem; border-radius: 6px; outline: none; font-size: 0.9rem; }
+    
+    /* Q&A Results */
+    .answer-container { background: rgba(17, 24, 39, 0.8); border-left: 4px solid var(--primary); border-radius: 0 8px 8px 0; padding: 1.2rem; margin-top: 1rem; line-height: 1.6; }
+    .answer-title { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--primary); font-weight: 700; margin-bottom: 0.5rem; }
+    .answer-text { color: var(--text-bright); font-size: 1rem; white-space: pre-wrap; }
+    
+    /* Source Cards */
+    .sources-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-top: 1rem; }
+    .source-card { background: var(--bg-input); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; font-size: 0.88rem; }
+    .source-meta { display: flex; justify-content: space-between; font-weight: 600; color: #60a5fa; margin-bottom: 0.5rem; font-size: 0.82rem; }
+    .source-text { color: var(--text-muted); line-height: 1.5; font-size: 0.85rem; }
+    
+    /* Document List */
+    .doc-list { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 1rem; }
+    .doc-row { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: var(--bg-input); border: 1px solid var(--border); border-radius: 6px; font-size: 0.9rem; }
+    
+    /* Metrics Grid */
+    .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+    .metric-card { background: var(--bg-input); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; text-align: center; }
+    .metric-val { font-size: 1.6rem; font-weight: 700; color: var(--text-bright); margin-top: 0.3rem; }
+    .metric-label { font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600; }
+    .chart-img { width: 100%; border-radius: 8px; border: 1px solid var(--border); margin-top: 1rem; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <div>
-        <h1>⚡ RAG Document Assistant</h1>
-        <p style="color: var(--text-muted); font-size: 0.85rem;">FastAPI · FAISS · SentenceTransformers · Ollama</p>
-      </div>
-      <div class="badge" id="statusBadge">
-        <span class="dot" id="statusDot"></span>
-        <span id="statusText">Checking...</span>
-      </div>
-    </header>
+  <div id="root"></div>
 
-    <!-- Upload Panel -->
-    <section class="card">
-      <h2>1. Ingest Documents</h2>
-      <div class="row">
-        <input type="file" id="fileInput" accept=".pdf,.txt">
-        <button id="uploadBtn" onclick="uploadDocument()">Upload & Index</button>
-        <button class="btn-secondary" id="reindexBtn" onclick="rebuildIndex()">Rebuild Index</button>
-      </div>
-      <p class="message" id="uploadMsg"></p>
-    </section>
+  <script type="text/babel">
+    const { useState, useEffect } = React;
 
-    <!-- Query Panel -->
-    <section class="card">
-      <h2>2. Ask a Question</h2>
-      <textarea id="queryInput" placeholder="What would you like to know from the documents? (e.g. What is the primary energy source?)"></textarea>
-      <div class="row" style="margin-top: 0.8rem; justify-content: space-between;">
-        <div style="display: flex; align-items: center; gap: 0.5rem;">
-          <label for="topKSelect" style="font-size: 0.9rem;">Top Chunks:</label>
-          <select id="topKSelect">
-            <option value="1">1</option>
-            <option value="3" selected>3</option>
-            <option value="5">5</option>
-          </select>
-        </div>
-        <button id="searchBtn" onclick="askQuestion()">Search & Generate</button>
-      </div>
-    </section>
+    function App() {
+      const [activeTab, setActiveTab] = useState('chat');
+      const [status, setStatus] = useState({ index_ready: false, chunks_count: 0 });
+      const [query, setQuery] = useState('');
+      const [topK, setTopK] = useState(3);
+      const [answerData, setAnswerData] = useState(null);
+      const [loading, setLoading] = useState(false);
+      const [uploading, setUploading] = useState(false);
+      const [documents, setDocuments] = useState([]);
+      const [uploadMessage, setUploadMessage] = useState('');
 
-    <!-- Results Panel -->
-    <section class="card" id="resultsCard" style="display: none;">
-      <h2>3. Answer & Source Citations</h2>
-      <div class="answer-box" id="answerBox">Thinking...</div>
-      <div class="sources" id="sourcesList"></div>
-    </section>
-  </div>
-
-  <script>
-    async function checkHealth() {
-      try {
-        const res = await fetch('/health');
-        const data = await res.json();
-        const dot = document.getElementById('statusDot');
-        const text = document.getElementById('statusText');
-        if (data.index_ready) {
-          dot.className = 'dot ready';
-          text.innerText = `Index Ready (${data.chunks_count} chunks)`;
-        } else {
-          dot.className = 'dot';
-          text.innerText = 'Index Empty';
+      const fetchHealth = async () => {
+        try {
+          const res = await fetch('/health');
+          const data = await res.json();
+          setStatus(data);
+        } catch (err) {
+          console.error(err);
         }
-      } catch (err) {
-        document.getElementById('statusText').innerText = 'Offline';
-      }
-    }
+      };
 
-    async function uploadDocument() {
-      const fileInput = document.getElementById('fileInput');
-      const msg = document.getElementById('uploadMsg');
-      if (!fileInput.files.length) {
-        msg.innerText = 'Please select a .pdf or .txt file first.';
-        return;
-      }
-      const formData = new FormData();
-      formData.append('file', fileInput.files[0]);
-      msg.innerText = 'Uploading and building index...';
+      const fetchDocuments = async () => {
+        try {
+          const res = await fetch('/documents');
+          const data = await res.json();
+          setDocuments(data.documents || []);
+        } catch (err) {
+          console.error(err);
+        }
+      };
 
-      try {
-        const res = await fetch('/upload', { method: 'POST', body: formData });
-        const data = await res.json();
-        msg.innerText = data.message || 'Done';
-        fileInput.value = '';
-        checkHealth();
-      } catch (err) {
-        msg.innerText = 'Error uploading file.';
-      }
-    }
+      useEffect(() => {
+        fetchHealth();
+        fetchDocuments();
+      }, []);
 
-    async function rebuildIndex() {
-      const msg = document.getElementById('uploadMsg');
-      msg.innerText = 'Reindexing documents...';
-      try {
-        const res = await fetch('/reindex', { method: 'POST' });
-        const data = await res.json();
-        msg.innerText = data.message || 'Done';
-        checkHealth();
-      } catch (err) {
-        msg.innerText = 'Error rebuilding index.';
-      }
-    }
-
-    async function askQuestion() {
-      const query = document.getElementById('queryInput').value.trim();
-      const topK = parseInt(document.getElementById('topKSelect').value);
-      const resultsCard = document.getElementById('resultsCard');
-      const answerBox = document.getElementById('answerBox');
-      const sourcesList = document.getElementById('sourcesList');
-      const searchBtn = document.getElementById('searchBtn');
-
-      if (!query) return;
-
-      resultsCard.style.display = 'block';
-      answerBox.innerText = 'Retrieving context and generating response...';
-      sourcesList.innerHTML = '';
-      searchBtn.disabled = true;
-
-      try {
-        const res = await fetch('/query', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ query: query, top_k: topK })
-        });
-        const data = await res.json();
-        answerBox.innerText = data.answer || 'No response generated.';
-
-        if (data.sources && data.sources.length) {
-          sourcesList.innerHTML = '<strong>Retrieved Contexts:</strong>';
-          data.sources.forEach((s, idx) => {
-            const item = document.createElement('div');
-            item.className = 'source-item';
-            item.innerHTML = `
-              <div class="source-header">
-                <span>#${idx + 1} Source: ${s.source}</span>
-                <span>Distance: ${s.distance ? s.distance.toFixed(3) : 'N/A'}</span>
-              </div>
-              <p>${s.text}</p>
-            `;
-            sourcesList.appendChild(item);
+      const handleQuery = async () => {
+        if (!query.trim()) return;
+        setLoading(true);
+        setAnswerData(null);
+        try {
+          const res = await fetch('/query', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: query.trim(), top_k: topK })
           });
+          const data = await res.json();
+          setAnswerData(data);
+        } catch (err) {
+          setAnswerData({ answer: 'Error connecting to RAG backend server.', sources: [] });
+        } finally {
+          setLoading(false);
         }
-      } catch (err) {
-        answerBox.innerText = 'Error communicating with server.';
-      } finally {
-        searchBtn.disabled = false;
-      }
+      };
+
+      const handleUpload = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setUploading(true);
+        setUploadMessage('Ingesting and embedding document...');
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+          const res = await fetch('/upload', { method: 'POST', body: formData });
+          const data = await res.json();
+          setUploadMessage(data.message || 'File uploaded successfully.');
+          fetchHealth();
+          fetchDocuments();
+        } catch (err) {
+          setUploadMessage('Upload failed. Please check backend server.');
+        } finally {
+          setUploading(false);
+          e.target.value = '';
+        }
+      };
+
+      const handleReindex = async () => {
+        setUploading(true);
+        setUploadMessage('Rebuilding FAISS index...');
+        try {
+          const res = await fetch('/reindex', { method: 'POST' });
+          const data = await res.json();
+          setUploadMessage(data.message || 'Index rebuilt.');
+          fetchHealth();
+        } catch (err) {
+          setUploadMessage('Failed to rebuild index.');
+        } finally {
+          setUploading(false);
+        }
+      };
+
+      return (
+        <div>
+          {/* Header */}
+          <header className="app-header">
+            <div className="brand">
+              <h1>⚡ RAG Document Intelligence</h1>
+              <p>FastAPI · FAISS · SentenceTransformers · Ollama (llama3.2)</p>
+            </div>
+            <div className="status-pill">
+              <span className={`dot ${status.index_ready ? 'ready' : ''}`}></span>
+              <span>{status.index_ready ? `Vector Index Ready (${status.chunks_count} chunks)` : 'Index Empty'}</span>
+            </div>
+          </header>
+
+          {/* Navigation Tabs */}
+          <nav className="tabs">
+            <button className={`tab-btn ${activeTab === 'chat' ? 'active' : ''}`} onClick={() => setActiveTab('chat')}>
+              💬 Ask & Search
+            </button>
+            <button className={`tab-btn ${activeTab === 'docs' ? 'active' : ''}`} onClick={() => setActiveTab('docs')}>
+              📄 Documents ({documents.length})
+            </button>
+            <button className={`tab-btn ${activeTab === 'evals' ? 'active' : ''}`} onClick={() => setActiveTab('evals')}>
+              📊 Evaluation Dashboard
+            </button>
+          </nav>
+
+          {/* Tab 1: Chat & Query */}
+          {activeTab === 'chat' && (
+            <div>
+              <div className="card">
+                <div className="card-title">
+                  <span>Ask a Question</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+                    <span>Top-k Chunks:</span>
+                    <select value={topK} onChange={(e) => setTopK(Number(e.target.value))}>
+                      <option value={1}>1</option>
+                      <option value={3}>3</option>
+                      <option value={5}>5</option>
+                    </select>
+                  </div>
+                </div>
+
+                <textarea
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleQuery(); } }}
+                  placeholder="Ask anything about the ingested documents... (e.g., 'What is the primary energy source for Mars Colony?')"
+                ></textarea>
+
+                <div className="action-row">
+                  <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                    Press <strong>Enter</strong> to search
+                  </div>
+                  <button className="btn" onClick={handleQuery} disabled={loading || !query.trim()}>
+                    {loading ? 'Synthesizing...' : 'Search & Answer'}
+                  </button>
+                </div>
+              </div>
+
+              {answerData && (
+                <div className="card">
+                  <div className="answer-container">
+                    <div className="answer-title">Synthesized Answer</div>
+                    <div className="answer-text">{answerData.answer}</div>
+                  </div>
+
+                  {answerData.sources && answerData.sources.length > 0 && (
+                    <div style={{ marginTop: '1.5rem' }}>
+                      <div className="card-title" style={{ fontSize: '0.95rem' }}>
+                        <span>Retrieved Context Chunks ({answerData.sources.length})</span>
+                      </div>
+                      <div className="sources-grid">
+                        {answerData.sources.map((s, idx) => (
+                          <div key={idx} className="source-card">
+                            <div className="source-meta">
+                              <span>#{idx + 1} {s.source}</span>
+                              <span>Distance: {s.distance ? s.distance.toFixed(3) : 'N/A'}</span>
+                            </div>
+                            <div className="source-text">{s.text}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Tab 2: Document Management */}
+          {activeTab === 'docs' && (
+            <div className="card">
+              <div className="card-title">
+                <span>Knowledge Base Documents</span>
+                <button className="btn-secondary btn" onClick={handleReindex} disabled={uploading}>
+                  🔄 Rebuild FAISS Index
+                </button>
+              </div>
+
+              <div style={{ padding: '1.5rem', border: '2px dashed var(--border)', borderRadius: '8px', textAlign: 'center' }}>
+                <input type="file" id="docUpload" accept=".pdf,.txt" style={{ display: 'none' }} onChange={handleUpload} />
+                <label htmlFor="docUpload" className="btn" style={{ cursor: 'pointer' }}>
+                  📂 Choose PDF or TXT File to Ingest
+                </label>
+                <p style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                  Automatic boundary-aware chunking and FAISS indexing
+                </p>
+              </div>
+
+              {uploadMessage && (
+                <p style={{ marginTop: '1rem', color: '#60a5fa', fontSize: '0.9rem' }}>{uploadMessage}</p>
+              )}
+
+              <div style={{ marginTop: '1.5rem' }}>
+                <h3 style={{ fontSize: '1rem', color: 'var(--text-bright)', marginBottom: '0.5rem' }}>Uploaded Files ({documents.length})</h3>
+                <div className="doc-list">
+                  {documents.length > 0 ? (
+                    documents.map((d, i) => (
+                      <div key={i} className="doc-row">
+                        <span>📄 {d.name}</span>
+                        <span style={{ color: 'var(--text-muted)' }}>{d.size_kb} KB</span>
+                      </div>
+                    ))
+                  ) : (
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>No documents uploaded yet in data/.</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Tab 3: Evaluation Dashboard */}
+          {activeTab === 'evals' && (
+            <div className="card">
+              <div className="card-title">
+                <span>RAG Evaluation Benchmark (RAG Triad + Retrieval)</span>
+                <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>From evaluate.py</span>
+              </div>
+
+              <div className="metrics-grid">
+                <div className="metric-card">
+                  <div className="metric-label">Recall@3</div>
+                  <div className="metric-val" style={{ color: '#22c55e' }}>100.0%</div>
+                </div>
+                <div className="metric-card">
+                  <div className="metric-label">MRR Score</div>
+                  <div className="metric-val" style={{ color: '#3b82f6' }}>1.000</div>
+                </div>
+                <div className="metric-card">
+                  <div className="metric-label">Precision@3</div>
+                  <div className="metric-val" style={{ color: '#eab308' }}>62.5%</div>
+                </div>
+                <div className="metric-card">
+                  <div className="metric-label">Faithfulness</div>
+                  <div className="metric-val" style={{ color: '#8b5cf6' }}>100.0%</div>
+                </div>
+                <div className="metric-card">
+                  <div className="metric-label">Context Relevance</div>
+                  <div className="metric-val" style={{ color: '#ec4899' }}>79.0%</div>
+                </div>
+                <div className="metric-card">
+                  <div className="metric-label">Avg Latency</div>
+                  <div className="metric-val" style={{ color: '#06b6d4' }}>12.3 ms</div>
+                </div>
+              </div>
+
+              <div>
+                <h3 style={{ fontSize: '1rem', color: 'var(--text-bright)', marginBottom: '0.5rem' }}>Visual Performance Dashboard</h3>
+                <img src={`/reports/summary_statistics.png?t=${Date.now()}`} alt="RAG Evaluation Dashboard" className="chart-img" />
+              </div>
+            </div>
+          )}
+        </div>
+      );
     }
 
-    checkHealth();
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
   </script>
 </body>
 </html>
