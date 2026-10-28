@@ -28,8 +28,9 @@ DATA_DIR = Path("data")
 REPORTS_DIR = Path("reports")
 REPORTS_DIR.mkdir(parents=True, exist_ok=True)
 
-# Mount reports directory for viewing evaluation charts
+# Mount reports and static assets
 app.mount("/reports", StaticFiles(directory=str(REPORTS_DIR)), name="reports")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 class QueryRequest(BaseModel):
