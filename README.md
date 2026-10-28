@@ -1,78 +1,120 @@
-# FastAPI RAG Document Assistant
+# Intelligent Document Query System (RAG + Evaluation)
 
-A scalable retrieval-augmented generation (RAG) system for building a document knowledge assistant. This version uses FastAPI for a more modern API surface and supports PDF/TXT ingestion, FAISS retrieval, and Ollama generation.
+A pure-Python, interview-ready Retrieval-Augmented Generation (RAG) system with an automated evaluation pipeline measuring **Precision@k**, **Recall@k**, **Mean Reciprocal Rank (MRR)**, and the **RAG Triad** (**Context Relevance**, **Faithfulness**, **Answer Relevance**).
 
-## Application
+Built using **FastAPI**, **FAISS**, **SentenceTransformers**, and **Ollama** (`llama3.2`).
 
-This project is designed as a document search assistant for internal reports, manuals, and knowledge base files. Users upload documents, the system builds a vector index, and queries return natural-language answers with source citations.
+---
 
-## Repository Structure
+## 🏗️ Architecture Overview
 
-- `app.py` - FastAPI application entrypoint
-- `src/index_manager.py` - vector index lifecycle and search logic
-- `src/llm_client.py` - Ollama generation client
-- `src/schemas.py` - request and response models
-- `src/utils.py` - document loading utilities
-- `src/build_index.py` - legacy index builder
-- `static/index.html` - browser UI
-- `requirements.txt` - Python dependencies
-- `Dockerfile` - container build file
+```
+User Query (Web UI / API / Benchmark)
+                  │
+                  ▼
+          FastAPI (app.py)
+                  │
+                  ▼
+       RAGPipeline (src/pipeline.py)
+   ┌──────────────┴──────────────┐
+   ▼                             ▼
+Vector Search (src/retriever.py) LLM Generator (src/generator.py)
+(FAISS + SentenceTransformers)   (Ollama llama3.2 via httpx)
+```
 
-## Requirements
+---
 
-- Python 3.11+ or compatible
-- Ollama installed and running locally
-- Ollama model downloaded, e.g. `llama3.2`
+## 📁 Modular Directory Structure
 
-## Setup
+```
+d:\RAG\
+├── src/
+│   ├── __init__.py         # Package exports
+│   ├── ingestion.py        # PDF/TXT extraction & boundary-aware chunking
+│   ├── retriever.py        # VectorIndexStore (FAISS, SentenceTransformers, JSON metadata)
+│   ├── generator.py        # OllamaGenerator (Ollama client, prompt formatting, injection guard)
+│   └── pipeline.py         # RAGPipeline (High-level facade connecting retrieval & generation)
+├── evals/
+│   ├── __init__.py         # Package marker
+│   ├── metrics.py          # Pure formulas for Precision@k, Recall@k, MRR & RAG Triad
+│   ├── evaluate.py         # Benchmark runner and dashboard generator
+│   └── eval_dataset.json   # Golden test dataset (Queries, Expected Sources, Ground Truth)
+├── static/
+│   └── index.html          # Clean, zero-build responsive web interface
+├── data/                   # Document knowledge base (.txt, .pdf)
+├── reports/
+│   └── summary_statistics.png # Auto-generated 2-panel performance dashboard
+├── app.py                  # Lean FastAPI server (REST API + Web UI)
+├── evaluate.py             # CLI entrypoint for running evaluation benchmark
+├── pyproject.toml          # Standard packaging & CLI scripts (rag-server, rag-eval)
+├── requirements.txt        # Python dependency manifest
+├── Dockerfile              # Container deployment recipe
+└── .env.example            # Environment variables template
+```
 
-1. Create and activate a Python environment:
+---
+
+## 🚀 Quickstart
+
+### 1. Installation
 
 ```powershell
+# Create and activate virtual environment
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
+
+# Install requirements
+pip install -r requirements.txt
 ```
 
-2. Install requirements:
-
-```powershell
-python -m pip install -r requirements.txt
-```
-
-3. Start Ollama and install the model if not already available:
-
-```powershell
-ollama pull llama3.2
-ollama serve
-```
-
-4. Add `.pdf` or `.txt` documents to the `data/` folder.
-
-## Running the App
+### 2. Start the Application
 
 ```powershell
 python app.py
 ```
+Open **`http://localhost:8000`** in your browser to interact with the web interface.
 
-Then open `http://localhost:8000` in your browser.
+### 3. Run the Evaluation Benchmark
 
-## API Endpoints
+```powershell
+python evaluate.py
+```
+This evaluates the retrieval and generation pipeline across the golden test dataset and automatically generates the visual dashboard in [`reports/summary_statistics.png`](reports/summary_statistics.png).
 
-- `GET /health` — health check and index readiness
-- `POST /upload` — upload a document and rebuild the index in background
-- `POST /reindex` — rebuild the entire index from the `data/` directory
-- `POST /query` — send a query and receive a RAG-generated answer with sources
+---
 
-## Environment Variables
+## 📊 Evaluation Metrics & Output
 
-- `OLLAMA_HOST` — Ollama API host (default: `http://127.0.0.1:11434`)
-- `OLLAMA_MODEL` — Ollama model name (default: `llama3.2`)
-- `RAG_DATA_DIR` — folder for source documents (default: `data`)
-- `RAG_INDEX_PATH` — path for FAISS index file (default: `vector.index`)
-- `RAG_METADATA_PATH` — path for chunk metadata file (default: `chunks_metadata.pkl`)
+Running `python evaluate.py` outputs a clean benchmark report:
 
-## Notes
+```
+=================================================================
+                      EVALUATION RESULTS
+=================================================================
+Total Benchmark Queries:     8
+Mean Retrieval Latency:      15.4 ms
+-----------------------------------------------------------------
+STAGE 1: RETRIEVAL QUALITY
+  * Precision@3:              62.50%
+  * Recall@3:                 100.00%
+  * Mean Reciprocal Rank (MRR):    1.0000
+-----------------------------------------------------------------
+STAGE 2: GENERATION QUALITY (THE RAG TRIAD)
+  * Context Relevance:             79.03%
+  * Faithfulness (Groundedness):   100.00%
+  * Answer Relevance:              33.05%
+=================================================================
+[Dashboard Saved] -> reports/summary_statistics.png
+```
 
-- The FastAPI app uses asynchronous request handling with threadpool execution for CPU-bound search and generation.
-- Document chunks include source metadata so returned answers can cite where text came from.
-- Uploads are accepted immediately and index rebuilding occurs in the background for faster responsiveness.
+---
+
+## 🛠️ API Reference
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/` | Web user interface |
+| `GET` | `/health` | Health check & index readiness |
+| `POST` | `/upload` | Upload `.pdf` or `.txt` document and rebuild index |
+| `POST` | `/reindex` | Rebuild FAISS vector index from `data/` directory |
+| `POST` | `/query` | Retrieve context & generate grounded answer |

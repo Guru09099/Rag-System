@@ -1,0 +1,9 @@
+Quantum Computing Architecture and Error Mitigation
+Quantum processors utilize superconducting transmon qubits cooled to 15 millikelvin using dilution refrigerators.
+The primary challenge in quantum computing is quantum decoherence, caused by thermal fluctuations and electromagnetic interference.
+Surface codes are the most widely studied quantum error correction architecture, requiring approximately 1,000 physical qubits to encode a single fault-tolerant logical qubit.
+High-fidelity two-qubit gate operations achieve error rates below 0.5% using cross-resonance microwave pulses.
+Cryogenic CMOS control circuits are placed adjacent to the quantum plane to reduce wire congestion and thermal load.
+Quantum advantage benchmarks focus on random circuit sampling and molecular energy simulation for lithium hydride.
+The quantum research team is led by Dr. Elena Rostova at the Advanced Cryogenics Facility in Zurich.
+

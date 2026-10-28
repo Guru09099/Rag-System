@@ -1,0 +1,67 @@
+[
+  {
+    "id": "q1",
+    "query": "What is the primary energy source for Mars Colony Alpha and how much power does it generate?",
+    "expected_sources": ["file1.txt"],
+    "expected_keywords": ["Helios-3 Fusion Reactor", "500 megawatts"],
+    "ground_truth_answer": "The primary energy source is the Helios-3 Fusion Reactor, which outputs 500 megawatts of power.",
+    "category": "Mars Colony"
+  },
+  {
+    "id": "q2",
+    "query": "Who is the commander of Mars Colony Alpha and what did they pilot previously?",
+    "expected_sources": ["file1.txt"],
+    "expected_keywords": ["Captain Sarah Jenkins", "Starship Voyager"],
+    "ground_truth_answer": "The commander is Captain Sarah Jenkins, who previously piloted the Starship Voyager.",
+    "category": "Mars Colony"
+  },
+  {
+    "id": "q3",
+    "query": "What are the emergency protocols on Mars Colony in the event of depressurization?",
+    "expected_sources": ["file1.txt"],
+    "expected_keywords": ["Sector 4", "5 minutes"],
+    "ground_truth_answer": "In the event of a depressurization, all personnel must gather in Sector 4 within 5 minutes.",
+    "category": "Mars Colony"
+  },
+  {
+    "id": "q4",
+    "query": "What temperature are transmon qubits cooled to, and what refrigerators are used?",
+    "expected_sources": ["quantum_computing.txt"],
+    "expected_keywords": ["15 millikelvin", "dilution refrigerators"],
+    "ground_truth_answer": "Superconducting transmon qubits are cooled to 15 millikelvin using dilution refrigerators.",
+    "category": "Quantum Computing"
+  },
+  {
+    "id": "q5",
+    "query": "How many physical qubits are needed for a fault-tolerant logical qubit in surface codes?",
+    "expected_sources": ["quantum_computing.txt"],
+    "expected_keywords": ["surface codes", "1,000 physical qubits", "logical qubit"],
+    "ground_truth_answer": "Surface codes require approximately 1,000 physical qubits to encode a single fault-tolerant logical qubit.",
+    "category": "Quantum Computing"
+  },
+  {
+    "id": "q6",
+    "query": "Who leads the quantum research team and where are they located?",
+    "expected_sources": ["quantum_computing.txt"],
+    "expected_keywords": ["Dr. Elena Rostova", "Zurich", "Advanced Cryogenics Facility"],
+    "ground_truth_answer": "The quantum research team is led by Dr. Elena Rostova at the Advanced Cryogenics Facility in Zurich.",
+    "category": "Quantum Computing"
+  },
+  {
+    "id": "q7",
+    "query": "What is the capacity and discharge rate of the primary clean energy grid battery?",
+    "expected_sources": ["clean_energy_grid.txt"],
+    "expected_keywords": ["400 megawatt-hours", "100 megawatts", "LFP"],
+    "ground_truth_answer": "The primary grid battery has a capacity of 400 megawatt-hours with a continuous discharge rate of 100 megawatts.",
+    "category": "Clean Energy"
+  },
+  {
+    "id": "q8",
+    "query": "How is black-start capability guaranteed in the microgrid and what is the response time?",
+    "expected_sources": ["clean_energy_grid.txt"],
+    "expected_keywords": ["10-megawatt flywheel", "20 milliseconds"],
+    "ground_truth_answer": "Black-start capability is guaranteed by an auxiliary 10-megawatt flywheel storage unit responding within 20 milliseconds.",
+    "category": "Clean Energy"
+  }
+]
+

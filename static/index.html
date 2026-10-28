@@ -1,191 +1,204 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RAG ChatBot</title>
-    <style>
-        * { box-sizing: border-box; }
-        body {
-            min-height: 100vh;
-            font-family: Arial, sans-serif;
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 40px 16px;
-            background: #050805;
-            color: #dfffe7;
-        }
-        .chat-container {
-            background: #0b120d;
-            padding: 32px;
-            border: 1px solid #1dff68;
-            border-radius: 12px;
-            box-shadow: 0 0 24px rgba(29, 255, 104, 0.22);
-        }
-        h1 {
-            color: #39ff88;
-            text-align: center;
-            margin-top: 0;
-            text-shadow: 0 0 14px rgba(57, 255, 136, 0.55);
-        }
-        p { color: #a8cbb2; }
-        .input-group,
-        .upload-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        input[type="text"],
-        input[type="file"] {
-            flex-grow: 1;
-            min-width: 220px;
-            padding: 12px;
-            border: 1px solid #256b3c;
-            border-radius: 8px;
-            background: #050805;
-            color: #dfffe7;
-            font-size: 16px;
-        }
-        input[type="text"]:focus {
-            outline: none;
-            border-color: #39ff88;
-            box-shadow: 0 0 0 3px rgba(57, 255, 136, 0.18);
-        }
-        button {
-            padding: 12px 24px;
-            background: #39ff88;
-            color: #031006;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
-            box-shadow: 0 0 16px rgba(57, 255, 136, 0.35);
-        }
-        button:hover { background: #8dffb8; }
-        button:disabled {
-            background: #314838;
-            color: #9db8a5;
-            box-shadow: none;
-            cursor: not-allowed;
-        }
-        #answer-box {
-            margin-top: 24px;
-            padding: 18px;
-            background: #071b0e;
-            border-radius: 8px;
-            border-left: 5px solid #39ff88;
-            display: none;
-        }
-        .context-box {
-            margin-top: 14px;
-            font-size: 0.85em;
-            color: #b8d7c1;
-            background: #060a07;
-            padding: 14px;
-            border: 1px dashed #256b3c;
-            border-radius: 8px;
-            display: none;
-        }
-        strong { color: #39ff88; }
-        #answerText, #contextText { white-space: pre-wrap; overflow-wrap: anywhere; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RAG Document Assistant</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+  <style>
+    :root {
+      --bg: #0d1117;
+      --card-bg: #161b22;
+      --border: #30363d;
+      --accent: #238636;
+      --accent-hover: #2ea043;
+      --text: #c9d1d9;
+      --text-bright: #f0f6fc;
+      --text-muted: #8b949e;
+      --tag-bg: #21262d;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--text); padding: 2rem 1rem; display: flex; justify-content: center; }
+    .container { width: 100%; max-width: 900px; display: flex; flex-direction: column; gap: 1.5rem; }
+    header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
+    h1 { color: var(--text-bright); font-size: 1.6rem; display: flex; align-items: center; gap: 0.5rem; }
+    .badge { padding: 0.35rem 0.75rem; border-radius: 999px; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 0.4rem; background: var(--tag-bg); border: 1px solid var(--border); }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #e3b341; }
+    .dot.ready { background: #3fb950; }
+    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; }
+    h2 { font-size: 1.1rem; color: var(--text-bright); margin-bottom: 0.8rem; }
+    .row { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; }
+    input[type="file"], input[type="text"], textarea, select {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text-bright);
+      padding: 0.6rem 0.8rem; font-size: 0.95rem; outline: none;
+    }
+    input[type="file"] { flex: 1; }
+    textarea { width: 100%; resize: vertical; min-height: 80px; }
+    button {
+      background: var(--accent); color: white; border: none; border-radius: 6px; padding: 0.6rem 1.2rem;
+      font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: background 0.15s;
+    }
+    button:hover { background: var(--accent-hover); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-secondary { background: var(--tag-bg); color: var(--text-bright); border: 1px solid var(--border); }
+    .btn-secondary:hover { background: #30363d; }
+    .answer-box { background: var(--bg); border-left: 4px solid var(--accent); padding: 1rem; border-radius: 4px; margin-top: 0.8rem; white-space: pre-wrap; color: var(--text-bright); }
+    .sources { margin-top: 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
+    .source-item { background: var(--bg); border: 1px solid var(--border); padding: 0.75rem; border-radius: 6px; font-size: 0.88rem; }
+    .source-header { display: flex; justify-content: space-between; font-weight: 600; color: #58a6ff; margin-bottom: 0.3rem; }
+    .message { font-size: 0.85rem; color: #58a6ff; margin-top: 0.5rem; }
+  </style>
 </head>
 <body>
-    <div class="chat-container">
-        <h1>🤖 RAG Knowledge Bot</h1>
-        <p>Ask a question about your documents:</p>
-        <div class="upload-group">
-            <input type="file" id="documentFile" accept=".txt,.pdf">
-            <button id="uploadBtn" onclick="uploadDocument()">Upload</button>
+  <div class="container">
+    <header>
+      <div>
+        <h1>⚡ RAG Document Assistant</h1>
+        <p style="color: var(--text-muted); font-size: 0.85rem;">FastAPI · FAISS · SentenceTransformers · Ollama</p>
+      </div>
+      <div class="badge" id="statusBadge">
+        <span class="dot" id="statusDot"></span>
+        <span id="statusText">Checking...</span>
+      </div>
+    </header>
+
+    <!-- Upload Panel -->
+    <section class="card">
+      <h2>1. Ingest Documents</h2>
+      <div class="row">
+        <input type="file" id="fileInput" accept=".pdf,.txt">
+        <button id="uploadBtn" onclick="uploadDocument()">Upload & Index</button>
+        <button class="btn-secondary" id="reindexBtn" onclick="rebuildIndex()">Rebuild Index</button>
+      </div>
+      <p class="message" id="uploadMsg"></p>
+    </section>
+
+    <!-- Query Panel -->
+    <section class="card">
+      <h2>2. Ask a Question</h2>
+      <textarea id="queryInput" placeholder="What would you like to know from the documents? (e.g. What is the primary energy source?)"></textarea>
+      <div class="row" style="margin-top: 0.8rem; justify-content: space-between;">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <label for="topKSelect" style="font-size: 0.9rem;">Top Chunks:</label>
+          <select id="topKSelect">
+            <option value="1">1</option>
+            <option value="3" selected>3</option>
+            <option value="5">5</option>
+          </select>
         </div>
+        <button id="searchBtn" onclick="askQuestion()">Search & Generate</button>
+      </div>
+    </section>
 
-        <div class="input-group">
-            <input type="text" id="userQuery" placeholder="e.g., What is the primary energy source?" onkeydown="if(event.key==='Enter') sendQuery()">
-            <button id="askBtn" onclick="sendQuery()">Ask</button>
-        </div>
+    <!-- Results Panel -->
+    <section class="card" id="resultsCard" style="display: none;">
+      <h2>3. Answer & Source Citations</h2>
+      <div class="answer-box" id="answerBox">Thinking...</div>
+      <div class="sources" id="sourcesList"></div>
+    </section>
+  </div>
 
-        <div id="answer-box">
-            <strong>Answer:</strong>
-            <p id="answerText"></p>
-        </div>
-
-        <div id="context-box" class="context-box">
-            <strong>Source Context:</strong>
-            <pre id="contextText"></pre>
-        </div>
-    </div>
-
-    <script>
-        async function uploadDocument() {
-            const fileInput = document.getElementById('documentFile');
-            const uploadBtn = document.getElementById('uploadBtn');
-
-            if (!fileInput.files.length) return;
-
-            const formData = new FormData();
-            formData.append('file', fileInput.files[0]);
-
-            uploadBtn.disabled = true;
-            uploadBtn.innerText = "Indexing...";
-
-            try {
-                const response = await fetch('/upload', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const data = await response.json();
-                alert(data.message || data.error);
-            } catch (error) {
-                alert("Error uploading file!");
-                console.error(error);
-            } finally {
-                uploadBtn.disabled = false;
-                uploadBtn.innerText = "Upload";
-            }
+  <script>
+    async function checkHealth() {
+      try {
+        const res = await fetch('/health');
+        const data = await res.json();
+        const dot = document.getElementById('statusDot');
+        const text = document.getElementById('statusText');
+        if (data.index_ready) {
+          dot.className = 'dot ready';
+          text.innerText = `Index Ready (${data.chunks_count} chunks)`;
+        } else {
+          dot.className = 'dot';
+          text.innerText = 'Index Empty';
         }
+      } catch (err) {
+        document.getElementById('statusText').innerText = 'Offline';
+      }
+    }
 
-        async function sendQuery() {
-            const queryInput = document.getElementById('userQuery');
-            const askBtn = document.getElementById('askBtn');
-            const answerBox = document.getElementById('answer-box');
-            const contextBox = document.getElementById('context-box');
-            
-            const query = queryInput.value.trim();
-            if (!query) return;
+    async function uploadDocument() {
+      const fileInput = document.getElementById('fileInput');
+      const msg = document.getElementById('uploadMsg');
+      if (!fileInput.files.length) {
+        msg.innerText = 'Please select a .pdf or .txt file first.';
+        return;
+      }
+      const formData = new FormData();
+      formData.append('file', fileInput.files[0]);
+      msg.innerText = 'Uploading and building index...';
 
-            // UI Loading State
-            askBtn.disabled = true;
-            askBtn.innerText = "Thinking...";
-            answerBox.style.display = 'none';
-            contextBox.style.display = 'none';
+      try {
+        const res = await fetch('/upload', { method: 'POST', body: formData });
+        const data = await res.json();
+        msg.innerText = data.message || 'Done';
+        fileInput.value = '';
+        checkHealth();
+      } catch (err) {
+        msg.innerText = 'Error uploading file.';
+      }
+    }
 
-            try {
-                const response = await fetch('/query', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ query: query })
-                });
+    async function rebuildIndex() {
+      const msg = document.getElementById('uploadMsg');
+      msg.innerText = 'Reindexing documents...';
+      try {
+        const res = await fetch('/reindex', { method: 'POST' });
+        const data = await res.json();
+        msg.innerText = data.message || 'Done';
+        checkHealth();
+      } catch (err) {
+        msg.innerText = 'Error rebuilding index.';
+      }
+    }
 
-                const data = await response.json();
+    async function askQuestion() {
+      const query = document.getElementById('queryInput').value.trim();
+      const topK = parseInt(document.getElementById('topKSelect').value);
+      const resultsCard = document.getElementById('resultsCard');
+      const answerBox = document.getElementById('answerBox');
+      const sourcesList = document.getElementById('sourcesList');
+      const searchBtn = document.getElementById('searchBtn');
 
-                // Show Results
-                document.getElementById('answerText').innerText = data.answer;
-                document.getElementById('contextText').innerText = data.context_used;
-                answerBox.style.display = 'block';
-                contextBox.style.display = 'block';
+      if (!query) return;
 
-            } catch (error) {
-                alert("Error connecting to server!");
-                console.error(error);
-            } finally {
-                askBtn.disabled = false;
-                askBtn.innerText = "Ask";
-            }
+      resultsCard.style.display = 'block';
+      answerBox.innerText = 'Retrieving context and generating response...';
+      sourcesList.innerHTML = '';
+      searchBtn.disabled = true;
+
+      try {
+        const res = await fetch('/query', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: query, top_k: topK })
+        });
+        const data = await res.json();
+        answerBox.innerText = data.answer || 'No response generated.';
+
+        if (data.sources && data.sources.length) {
+          sourcesList.innerHTML = '<strong>Retrieved Contexts:</strong>';
+          data.sources.forEach((s, idx) => {
+            const item = document.createElement('div');
+            item.className = 'source-item';
+            item.innerHTML = `
+              <div class="source-header">
+                <span>#${idx + 1} Source: ${s.source}</span>
+                <span>Distance: ${s.distance ? s.distance.toFixed(3) : 'N/A'}</span>
+              </div>
+              <p>${s.text}</p>
+            `;
+            sourcesList.appendChild(item);
+          });
         }
-    </script>
+      } catch (err) {
+        answerBox.innerText = 'Error communicating with server.';
+      } finally {
+        searchBtn.disabled = false;
+      }
+    }
+
+    checkHealth();
+  </script>
 </body>
 </html>

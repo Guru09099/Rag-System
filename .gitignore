@@ -207,3 +207,9 @@ marimo/_lsp/
 __marimo__/
 
 .env
+
+
+# Vector store index & metadata
+vector.index
+chunks_metadata.json
+*.tmp
